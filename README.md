@@ -1,6 +1,11 @@
-# OVD-YOLOE-Light
+# YOLO-EOV
 
 This repository accompanies an **undergraduate Final Year Project (FYP)** on **open-vocabulary object detection**. It provides a lightweight, reproducible codebase built around **YOLOE-11L** for training, evaluation, and deployment of open-vocabulary detectors.
+
+## Author
+
+- PENG, Minqi; SID: 1155191548
+- ZHU, Keyu; SID: 1155191834
 
 ## Objectives
 
