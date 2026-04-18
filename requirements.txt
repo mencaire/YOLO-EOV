@@ -1,0 +1,7 @@
+ultralytics>=8.4.0
+pycocotools>=2.0.7
+lvis>=0.5.3
+opencv-python>=4.8.0
+PyYAML>=6.0
+numpy>=1.24
+pillow>=10.0

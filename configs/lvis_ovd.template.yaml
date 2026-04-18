@@ -1,0 +1,10 @@
+# Fill paths after running tools/convert_lvis_to_yolo_det.py and tools/make_dataset_yaml.py
+path: /path/to/converted/lvis_ovd
+train: /path/to/converted/lvis_ovd/images/lvis_train.txt
+val: /path/to/converted/lvis_ovd/images/lvis_val.txt
+nc: 1203
+names:
+  0: aerosol_can
+  1: airplane
+  2: alarm_clock
+  # ... continue with the full LVIS class list produced by make_dataset_yaml.py

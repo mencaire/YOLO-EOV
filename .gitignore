@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.DS_Store
+Thumbs.db
+
+# ML / runs (adjust if you want to track these)
+runs/
+wandb/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.weights
+
+# Jupyter
+.ipynb_checkpoints/
