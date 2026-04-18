@@ -429,4 +429,6 @@ This path typically yields more reproducible experiments than implementing a bes
 
 ## Citation and acknowledgment
 
-If you use this code in academic work, please cite the underlying **Ultralytics YOLOE** / **YOLO** releases and the **COCO** / **LVIS** datasets according to their respective licenses and citation guidelines. This repository is maintained as **FYP coursework**; adapt the wording above to your institution’s reporting requirements.
+This repository is **Final Year Project (FYP) coursework** and builds on public models and datasets. We cite the **YOLOE** method, the **Ultralytics** implementation used in this project, and the **COCO** / **LVIS** benchmarks in the FYP report. Software versions and dataset access or download dates are recorded from our experimental setup (`pip show ultralytics`, repository commit hash, or download date).
+
+**Licenses.** Ultralytics is distributed under **AGPL-3.0**; COCO and LVIS have their own terms on the official dataset pages. This codebase does not supersede those obligations; dataset acknowledgements follow departmental or programme requirements as applicable.
