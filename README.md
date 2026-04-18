@@ -1,23 +1,24 @@
 # OVD-YOLOE-Light
 
-一个可直接落地的 **open-vocabulary object detection** 轻量工程，默认基于 **YOLOE-11L** 做开放词汇目标检测。
+This repository accompanies an **undergraduate Final Year Project (FYP)** on **open-vocabulary object detection**. It provides a lightweight, reproducible codebase built around **YOLOE-11L** for training, evaluation, and deployment of open-vocabulary detectors.
 
-这个工程的目标是：
-- 模型参数量落在 **20M–80M** 区间内
-- 支持 **COCO / LVIS** 数据集
-- 支持 **开放词汇推理**（任意文本类别 prompt）
-- 支持 **训练 / 官方 AP-AR 评估 / FPS 测速 / ONNX 导出**
+## Objectives
 
-> 默认推荐模型：`yoloe-11l-seg.pt` + `yoloe-11l.yaml`
->
-> 这样做的原因是它在轻量级范围内更容易同时兼顾速度、精度和开放词汇能力。
+The implementation targets the following properties:
+
+- Model size within approximately **20M–80M** parameters  
+- Support for **COCO** and **LVIS** benchmarks  
+- **Open-vocabulary inference** via arbitrary text class prompts  
+- End-to-end workflows for **training**, **standard AP/AR evaluation**, **throughput (FPS) measurement**, and **ONNX export**
+
+**Default configuration:** `yoloe-11l-seg.pt` with `yoloe-11l.yaml`. This pairing offers a practical balance among latency, accuracy, and open-vocabulary capability within the lightweight regime.
 
 ---
 
-## 1. 工程结构
+## 1. Repository layout
 
 ```text
-ovd_yoloe_light/
+YOLO-EOV/
 ├── README.md
 ├── requirements.txt
 ├── configs/
@@ -49,47 +50,44 @@ ovd_yoloe_light/
 
 ---
 
-## 2. 环境安装
+## 2. Environment setup
 
-建议环境：
-- Python 3.10 / 3.11
-- PyTorch + CUDA
-- 单卡或多卡均可
+**Recommended environment:** Python 3.10 or 3.11; PyTorch with CUDA; single- or multi-GPU training.
 
-### 2.1 新建环境
+### 2.1 Create a conda environment
 
 ```bash
 conda create -n ovd_yoloe python=3.10 -y
 conda activate ovd_yoloe
 ```
 
-### 2.2 安装 PyTorch
+### 2.2 Install PyTorch
 
-请按你的 CUDA 版本安装官方 PyTorch。
+Install PyTorch from the official index according to your CUDA version.
 
-例如 CUDA 12.1：
+Example (CUDA 12.1):
 
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 ```
 
-### 2.3 安装依赖
+### 2.3 Install project dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2.4 验证 YOLOE 是否可用
+### 2.4 Verify the YOLOE stack
 
 ```bash
 python scripts/model_info.py --weights yoloe-11l-seg.pt
 ```
 
-如果这里能自动下载权重并打印网络信息，说明环境 OK。
+Successful automatic weight download and printed network statistics indicate a correct installation.
 
 ---
 
-## 3. 数据集目录约定
+## 3. Dataset directory layout
 
 ### 3.1 COCO
 
@@ -104,7 +102,7 @@ python scripts/model_info.py --weights yoloe-11l-seg.pt
 
 ### 3.2 LVIS
 
-LVIS 通常复用 COCO 图像目录：
+LVIS annotations are typically paired with COCO image directories:
 
 ```text
 /data/lvis/
@@ -119,11 +117,11 @@ LVIS 通常复用 COCO 图像目录：
 
 ---
 
-## 4. 数据转换
+## 4. Format conversion
 
-Ultralytics 训练时更适合使用 YOLO txt 标签格式，因此这里提供了 COCO / LVIS 的转换脚本。
+Ultralytics training expects YOLO-style text labels. Conversion utilities are provided for COCO and LVIS annotations.
 
-### 4.1 转 COCO
+### 4.1 COCO
 
 ```bash
 python tools/convert_coco_to_yolo_det.py \
@@ -145,7 +143,7 @@ python tools/make_dataset_yaml.py \
   --output-yaml /data/converted/coco_ovd/coco_ovd.yaml
 ```
 
-### 4.2 转 LVIS
+### 4.2 LVIS
 
 ```bash
 python tools/convert_lvis_to_yolo_det.py \
@@ -169,22 +167,20 @@ python tools/make_dataset_yaml.py \
 
 ---
 
-## 5. 训练
+## 5. Training
 
-### 5.1 训练思路
+### 5.1 Procedure
 
-这里采用：
-1. 用 `yoloe-11l.yaml` 初始化检测模型
-2. 加载 `yoloe-11l-seg.pt` 作为预训练权重
-3. 用 `YOLOEPETrainer` 做 detection 微调
-4. 先跑 COCO，再在 LVIS 上继续微调
+The default pipeline proceeds as follows:
 
-这样更符合你的需求：
-- 参数量控制在轻量范围内
-- 保留开放词汇能力
-- 更容易达到 COCO / LVIS 的 AP 目标区间
+1. Initialize the detector from `yoloe-11l.yaml`  
+2. Load pretrained weights from `yoloe-11l-seg.pt`  
+3. Fine-tune with `YOLOEPETrainer` for detection  
+4. Train on COCO, then continue fine-tuning on LVIS  
 
-### 5.2 训练 COCO
+This schedule is intended to preserve open-vocabulary behaviour while remaining within the target parameter budget and yielding competitive COCO/LVIS AP.
+
+### 5.2 COCO training
 
 ```bash
 python scripts/train.py \
@@ -201,7 +197,7 @@ python scripts/train.py \
   --amp
 ```
 
-### 5.3 再训练 LVIS
+### 5.3 LVIS fine-tuning
 
 ```bash
 python scripts/train.py \
@@ -218,15 +214,15 @@ python scripts/train.py \
   --amp
 ```
 
-> 如果你的显存不够，把 `batch` 改成 4 或 8；必要时把 `imgsz` 改成 512。
+**Note:** Reduce `batch` (e.g., to 4 or 8) or `imgsz` (e.g., to 512) if GPU memory is limited.
 
 ---
 
-## 6. 官方 AP / AR 评估
+## 6. Official AP / AR evaluation
 
-这个工程没有只依赖框架内部的 val 指标，而是额外写了 **官方 COCO API / LVIS API** 的评估脚本，直接输出 `AP / AP50 / AP75 / AR...`，更适合你写实验。
+Evaluation uses the **COCO API** and **LVIS API** to report standard metrics (`AP`, `AP50`, `AP75`, `AR`, etc.), rather than relying solely on in-framework validation scores. This facilitates direct comparison with published results.
 
-### 6.1 评估 COCO
+### 6.1 COCO
 
 ```bash
 python scripts/val.py \
@@ -241,7 +237,7 @@ python scripts/val.py \
   --half
 ```
 
-### 6.2 评估 LVIS
+### 6.2 LVIS
 
 ```bash
 python scripts/val.py \
@@ -256,19 +252,18 @@ python scripts/val.py \
   --half
 ```
 
-输出会写到：
-- `runs/ovd/coco_preds.json`
-- `runs/ovd/coco_metrics.json`
-- `runs/ovd/lvis_preds.json`
-- `runs/ovd/lvis_metrics.json`
+**Outputs:**
+
+- `runs/ovd/coco_preds.json`, `runs/ovd/coco_metrics.json`  
+- `runs/ovd/lvis_preds.json`, `runs/ovd/lvis_metrics.json`  
 
 ---
 
-## 7. 开放词汇推理
+## 7. Open-vocabulary inference
 
-你可以不受训练类别限制，直接输入文本类别 prompt。
+Inference accepts arbitrary text prompts; it is not restricted to the training label set.
 
-### 7.1 单图 / 文件夹推理
+### 7.1 Single image or directory
 
 ```bash
 python scripts/predict.py \
@@ -280,9 +275,9 @@ python scripts/predict.py \
   --save
 ```
 
-### 7.2 用类别文件推理
+### 7.2 Class list from file
 
-`classes.txt`:
+Example `classes.txt`:
 
 ```text
 person
@@ -291,8 +286,6 @@ backpack
 fire extinguisher
 forklift
 ```
-
-然后：
 
 ```bash
 python scripts/predict.py \
@@ -306,9 +299,9 @@ python scripts/predict.py \
 
 ---
 
-## 8. FPS 测速
+## 8. Throughput (FPS) benchmarking
 
-先准备一个 `bench_images.txt`，每行一张图片绝对路径，例如：
+Prepare `bench_images.txt` with one absolute image path per line, for example:
 
 ```text
 /data/coco/val2017/000000000139.jpg
@@ -316,7 +309,7 @@ python scripts/predict.py \
 /data/coco/val2017/000000000632.jpg
 ```
 
-运行：
+Run:
 
 ```bash
 python scripts/benchmark.py \
@@ -331,7 +324,7 @@ python scripts/benchmark.py \
   --out-json runs/ovd/benchmark.json
 ```
 
-输出类似：
+Example output:
 
 ```json
 {
@@ -345,9 +338,9 @@ python scripts/benchmark.py \
 
 ---
 
-## 9. 导出 ONNX
+## 9. ONNX export
 
-如果你要部署，可以先固定一组开放词汇类别，再导出 ONNX。
+For deployment, fix a set of open-vocabulary classes, then export to ONNX.
 
 ```bash
 python scripts/export.py \
@@ -361,104 +354,74 @@ python scripts/export.py \
 
 ---
 
-## 10. 推荐实验配置
+## 10. Suggested experimental configurations
 
-### 方案 A：更稳妥地贴近你的指标
+### Configuration A (balanced baseline)
 
-- Backbone / model family: `YOLOE-11L`
-- Params: 约 26M 级别
-- Input size: `640`
-- 训练顺序：`COCO -> LVIS`
-- Mixed precision: 开
-- Eval: 官方 COCO / LVIS API
-- Benchmark: 单卡 T4 / A10 / 4090 测 PyTorch 或 ONNX
+- Architecture: YOLOE-11L  
+- Parameters: on the order of 26M  
+- Input size: 640  
+- Training: COCO → LVIS  
+- Mixed precision: enabled  
+- Evaluation: official COCO/LVIS APIs  
+- Throughput: measure on a single GPU (e.g., T4, A10, RTX 4090) in PyTorch or ONNX  
 
-### 方案 B：更追求 LVIS AP
+### Configuration B (higher LVIS AP)
 
-把默认模型替换为：
-- `yoloe-26l.yaml`
-- `yoloe-26l-seg.pt`
-
-你只需要把训练命令里的 `--model-cfg` 和 `--pretrained` 改掉即可。
+Replace defaults with `yoloe-26l.yaml` and `yoloe-26l-seg.pt`; update `--model-cfg` and `--pretrained` in the training commands accordingly.
 
 ---
 
-## 11. 你最关心的几个结果怎么对应
+## 11. Metric correspondence
 
-### 参数量
-
-用：
-
-```bash
-python scripts/model_info.py --weights yoloe-11l-seg.pt
-```
-
-### COCO AP / AR
-
-用：
-
-```bash
-python scripts/val.py --dataset coco ...
-```
-
-### LVIS AP / AR
-
-用：
-
-```bash
-python scripts/val.py --dataset lvis ...
-```
-
-### FPS
-
-用：
-
-```bash
-python scripts/benchmark.py ...
-```
+| Quantity | Command / script |
+|----------|------------------|
+| Parameter count | `python scripts/model_info.py --weights yoloe-11l-seg.pt` |
+| COCO AP / AR | `python scripts/val.py --dataset coco ...` |
+| LVIS AP / AR | `python scripts/val.py --dataset lvis ...` |
+| FPS | `python scripts/benchmark.py ...` |
 
 ---
 
-## 12. 常见问题
+## 12. Design rationale (FAQ)
 
-### Q1. 为什么不用纯从零写 backbone + head？
-因为你要的是“完整能跑、能做 open-vocabulary detection、还能冲 COCO/LVIS 指标”的工程，不是一个只能在 toy dataset 上跑通的 demo。
+**Why build on an existing detector rather than a custom backbone and head from scratch?**  
+The goal is a complete pipeline for open-vocabulary detection with reproducible COCO/LVIS metrics, not a minimal proof-of-concept on a toy dataset.
 
-### Q2. 为什么训练时还是要转换成 YOLO 标签？
-因为这样最稳定，最方便接 Ultralytics 训练管线，也更容易自己维护。
+**Why convert annotations to YOLO text format for training?**  
+This format integrates cleanly with the Ultralytics training stack and simplifies maintenance.
 
-### Q3. 为什么评估时又回到 COCO/LVIS 官方 json？
-因为你最终论文里需要的是官方 AP / AR，不是框架内部的近似值。
+**Why evaluate with official COCO/LVIS JSON and APIs?**  
+Thesis-grade reporting requires standard AP/AR definitions; framework-internal metrics may not align with the literature.
 
-### Q4. 能不能只做推理不训练？
-可以。
-你直接运行：
+**Is training optional?**  
+Yes. Pretrained weights can be used for inference only, for example:
 
 ```bash
 python scripts/predict.py --weights yoloe-11l-seg.pt --source demo.jpg --classes person bus helmet
 ```
 
-### Q5. 能不能换成 YOLO-World？
-可以，但这份工程默认选 YOLOE，是因为在“轻量 + 开放词汇 + 实时 + 指标目标”这几个条件下更贴近你的要求。
+**Could YOLO-World or other models be substituted?**  
+Yes. This FYP codebase defaults to YOLOE as a practical compromise among model size, open-vocabulary capability, latency, and benchmark targets.
 
 ---
 
-## 13. 最后建议
+## 13. Recommended baseline for reported targets
 
-如果你想尽量贴近：
-- **COCO 50 AP**
-- **LVIS 35 AP**
-- **10–70 FPS**
-- **20M–80M 参数量**
-
-优先跑这套：
+For objectives in the neighbourhood of **~50 AP on COCO**, **~35 AP on LVIS**, **~10–70 FPS**, and **20M–80M parameters**, the following recipe is a sensible starting point:
 
 ```text
 YOLOE-11L
-imgsz=640
-COCO fine-tune -> LVIS fine-tune
-official COCO/LVIS eval
-half precision benchmark
+imgsz = 640
+COCO fine-tuning → LVIS fine-tuning
+official COCO/LVIS evaluation
+half-precision throughput benchmark
 ```
 
-这会比你从零手写一个 CLIP + FCOS / DETR 混合模型更容易真正落到可复现实验。
+This path typically yields more reproducible experiments than implementing a bespoke CLIP-FCOS or DETR-style system from scratch within a single FYP cycle.
+
+---
+
+## Citation and acknowledgment
+
+If you use this code in academic work, please cite the underlying **Ultralytics YOLOE** / **YOLO** releases and the **COCO** / **LVIS** datasets according to their respective licenses and citation guidelines. This repository is maintained as **FYP coursework**; adapt the wording above to your institution’s reporting requirements.
