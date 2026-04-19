@@ -24,11 +24,17 @@ The implementation targets the following properties:
 
 ```text
 YOLO-EOV/
+├── .gitignore
 ├── README.md
 ├── requirements.txt
 ├── configs/
 │   ├── coco_ovd.template.yaml
 │   └── lvis_ovd.template.yaml
+├── docs/
+|   ├── FYP Report_1st_Draft.pdf
+│   ├── FYP Research Proposal.pdf
+│   ├── FYP Term1 End Report.pdf
+│   └── FYP Term1 Midterm Report.pdf
 ├── ovd/
 │   ├── __init__.py
 │   ├── data.py
@@ -47,10 +53,12 @@ YOLO-EOV/
 │   ├── train_coco.sh
 │   ├── train_lvis.sh
 │   └── val.py
-└── tools/
-    ├── convert_coco_to_yolo_det.py
-    ├── convert_lvis_to_yolo_det.py
-    └── make_dataset_yaml.py
+├── tools/
+│   ├── convert_coco_to_yolo_det.py
+│   ├── convert_lvis_to_yolo_det.py
+│   └── make_dataset_yaml.py
+└── .vscode/
+    └── settings.json
 ```
 
 ---
